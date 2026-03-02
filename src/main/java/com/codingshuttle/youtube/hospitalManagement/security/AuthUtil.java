@@ -10,11 +10,13 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
+import static io.jsonwebtoken.Jwts.SIG.HS512;
+
 @Component
 public class AuthUtil {
 
 
-    @Value("{jwt.secret}")
+    @Value("${jwt.secret}")
     private String jwtSecretKey;
 
     private SecretKey getSecretKey(){

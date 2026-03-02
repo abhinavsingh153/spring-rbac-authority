@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,6 +20,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final AuthUtil authUtil;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public LoginResponseDto login(LoginRequestDto request) {
 
@@ -34,13 +36,15 @@ public class AuthService {
 
     public SignupResponseDto signup(LoginRequestDto request) {
 
-        User user =userRepository.findByUsername(request.getUsername()).orElseThrow(null);
+        User user =userRepository.findByUsername(request.getUsername()).orElse(null);
 
-        if (user!=null) throw new IllegalArgumentException("User already exists");
+        if (user!=null) {
+            throw new IllegalArgumentException("User already exists");
+        }
 
         user = userRepository.save(User.builder()
                 .username(request.getUsername())
-                .password(request.getPassword()).build());
+                .password(passwordEncoder.encode(request.getPassword())).build());
         return new SignupResponseDto(user.getId() , user.getUsername());
 
     }
