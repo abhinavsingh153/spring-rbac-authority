@@ -20,7 +20,6 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 @RequiredArgsConstructor
 public class WebSecurityConfig {
 
-    private final PasswordEncoder passwordEncoder;
     private final JwtFilter jwtFilter;
 
     @Bean
