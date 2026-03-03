@@ -14,7 +14,6 @@ import java.nio.file.AccessDeniedException;
 
 @RestControllerAdvice
 @Slf4j
-//@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
 //    private final CommonUtil commonUtil;
