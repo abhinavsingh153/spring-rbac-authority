@@ -1,6 +1,6 @@
 package com.codingshuttle.youtube.hospitalManagement.entity;
 
-import com.codingshuttle.youtube.hospitalManagement.entity.type.AuthProvderType;
+import com.codingshuttle.youtube.hospitalManagement.entity.type.AuthProviderType;
 import com.codingshuttle.youtube.hospitalManagement.entity.type.RoleType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -19,7 +19,9 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 @Data
-@Table(name = "app_user")
+@Table(name = "app_user", indexes = {
+        @Index(name = "idx_provider_id_provider_type" , columnList = "providerId , providerType")
+})
 @Entity
 public class User implements UserDetails {
 
@@ -34,7 +36,7 @@ public class User implements UserDetails {
     private String providerId;
 
     @Enumerated(EnumType.STRING)
-    private AuthProvderType provderType;
+    private AuthProviderType providerType;
 
     @ElementCollection(fetch = FetchType.EAGER) //By putting this annotation RoleType table will be created automatically
     @Enumerated(EnumType.STRING)

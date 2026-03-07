@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
@@ -29,6 +31,7 @@ import java.io.IOException;
 public class WebSecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final OAuth2SuccessHanlder oAuth2SuccessHanlder;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -47,7 +50,9 @@ public class WebSecurityConfig {
                             (request, response, exception) -> {
                                 log.error("Oauth2 error: {}" , exception.getMessage());
                             }
-                    ));
+                    )
+                            .successHandler(oAuth2SuccessHanlder)
+                            );
 //                .formLogin(Customizer.withDefaults());
             return httpSecurity.build();
 
