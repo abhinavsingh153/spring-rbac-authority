@@ -52,7 +52,7 @@ public class AppointmentService {
     }
 
     @Transactional
-    @PreAuthorize("hasAuthority('appointment:write') OR #doctorId == authentication.prinicpal.id")
+    @PreAuthorize("hasAuthority('appointment:write') OR #doctorId == authentication.principal.id")
     public Appointment reAssignAppointmentToAnotherDoctor(Long appointmentId, Long doctorId) {
         Appointment appointment = appointmentRepository.findById(appointmentId).orElseThrow();
         Doctor doctor = doctorRepository.findById(doctorId).orElseThrow();
@@ -66,7 +66,7 @@ public class AppointmentService {
 
     //#doctorId == authentication.prinicpal.id , this is SEL
 
-    @PreAuthorize("hasRole('ADMIN') OR hasRole('DOCTOR') AND #doctorId == authentication.prinicpal.id")
+    @PreAuthorize("(hasRole('ADMIN') OR hasRole('DOCTOR')) AND #doctorId == authentication.principal.id")
     public List<AppointmentResponseDto> getAllAppointmentsOfDoctor(Long doctorId) {
         Doctor doctor = doctorRepository.findById(doctorId).orElseThrow();
 
