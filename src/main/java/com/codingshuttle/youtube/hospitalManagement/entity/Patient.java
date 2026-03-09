@@ -2,9 +2,7 @@ package com.codingshuttle.youtube.hospitalManagement.entity;
 
 import com.codingshuttle.youtube.hospitalManagement.entity.type.BloodGroupType;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
@@ -26,6 +24,10 @@ import java.util.List;
                 @Index(name = "idx_patient_birth_date", columnList = "birthDate")
         }
 )
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Patient {
 
     @Id
@@ -42,6 +44,10 @@ public class Patient {
     private String email;
 
     private String gender;
+
+    @OneToOne // It will automatically create a user_id column in the tabble
+    @MapsId // It will map the user_id column
+    private User user;
 
     @CreationTimestamp
     @Column(updatable = false)

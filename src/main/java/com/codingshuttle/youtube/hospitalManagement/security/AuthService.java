@@ -2,10 +2,15 @@ package com.codingshuttle.youtube.hospitalManagement.security;
 
 import com.codingshuttle.youtube.hospitalManagement.dto.LoginRequestDto;
 import com.codingshuttle.youtube.hospitalManagement.dto.LoginResponseDto;
+import com.codingshuttle.youtube.hospitalManagement.dto.SignupRequestDto;
 import com.codingshuttle.youtube.hospitalManagement.dto.SignupResponseDto;
+import com.codingshuttle.youtube.hospitalManagement.entity.Patient;
 import com.codingshuttle.youtube.hospitalManagement.entity.User;
 import com.codingshuttle.youtube.hospitalManagement.entity.type.AuthProviderType;
+import com.codingshuttle.youtube.hospitalManagement.entity.type.RoleType;
+import com.codingshuttle.youtube.hospitalManagement.repository.PatientRepository;
 import com.codingshuttle.youtube.hospitalManagement.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,6 +21,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -24,6 +31,7 @@ public class AuthService {
     private final AuthUtil authUtil;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PatientRepository patientRepository;
 
     public LoginResponseDto login(LoginRequestDto request) {
 
@@ -38,14 +46,15 @@ public class AuthService {
     }
 
     //Controller method
-    public SignupResponseDto signup(LoginRequestDto signupRequestDto) {
+    public SignupResponseDto signup(SignupRequestDto signupRequestDto) {
 
         User user = signupInternal(signupRequestDto, AuthProviderType.EMAIL, null);
         return new SignupResponseDto(user.getId() , user.getUsername());
 
     }
 
-    public User signupInternal(LoginRequestDto request, AuthProviderType authProviderType , String providerId){
+    @Transactional
+    public User signupInternal(SignupRequestDto request, AuthProviderType authProviderType , String providerId){
         User user =userRepository.findByUsername(request.getUsername()).orElse(null);
 
         if (user!=null) {
@@ -55,6 +64,8 @@ public class AuthService {
         user = User.builder()
                 .username(request.getUsername())
                 .providerType(authProviderType)
+//                .roles(Set.of(RoleType.PATIENT))
+                .roles(request.getRoles()) //not recommended for prod, just for learning
                 .providerId(providerId)
                 .build();
 
@@ -62,7 +73,17 @@ public class AuthService {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
-        return userRepository.save(user);
+        user = userRepository.save(user);
+
+        Patient patient = Patient.builder()
+                .name(request.getName())
+                .email(request.getUsername())
+                .user(user)
+                .build();
+
+        patientRepository.save(patient);
+
+        return user;
     }
 
     /*
@@ -81,6 +102,7 @@ public class AuthService {
         User user = userRepository.findByProviderIdAndProviderType(providerId,authProviderType).orElse(null);
 
         String email = oAuth2User.getAttribute("email");
+        String name = oAuth2User.getAttribute("name");
 
         User emailUser = userRepository.findByUsername(email).orElse(null);
 
@@ -88,7 +110,7 @@ public class AuthService {
             //signup flow:
 
             String username = authUtil.determineUsernamefromOAuth2User(oAuth2User,registrationId,providerId);
-            user = signupInternal(new LoginRequestDto(username, null), authProviderType, providerId);
+            user = signupInternal(new SignupRequestDto(username, null, name ,Set.of(RoleType.PATIENT) ), authProviderType, providerId);
 
         }else if (user!=null){
 

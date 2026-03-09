@@ -1,5 +1,7 @@
 package com.codingshuttle.youtube.hospitalManagement.security;
 
+import com.codingshuttle.youtube.hospitalManagement.entity.Doctor;
+import com.codingshuttle.youtube.hospitalManagement.entity.type.RoleType;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,6 +27,9 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 
+import static com.codingshuttle.youtube.hospitalManagement.entity.type.RoleType.ADMIN;
+import static com.codingshuttle.youtube.hospitalManagement.entity.type.RoleType.DOCTOR;
+
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
@@ -41,8 +46,8 @@ public class WebSecurityConfig {
                     .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(auth -> auth
                                     .requestMatchers("/public/**", "/auth/**").permitAll()
-//                        .requestMatchers("/admin/**").hasRole("ADMIN")
-//                        .requestMatchers("/doctors/**").hasAnyRole("ADMIN", "DOCTOR")
+                        .requestMatchers("/admin/**").hasRole(RoleType.ADMIN.name())
+                        .requestMatchers("/doctors/**").hasAnyRole(DOCTOR.name() , ADMIN.name())
                                     .anyRequest().authenticated()
                     )
                     .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
