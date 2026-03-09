@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -37,6 +39,7 @@ public class WebSecurityConfig {
 
     private final JwtFilter jwtFilter;
     private final OAuth2SuccessHanlder oAuth2SuccessHanlder;
+    private final HandlerExceptionResolver handlerExceptionResolver;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -54,10 +57,17 @@ public class WebSecurityConfig {
                     .oauth2Login(oauth2 -> oauth2.failureHandler(
                             (request, response, exception) -> {
                                 log.error("Oauth2 error: {}" , exception.getMessage());
+
+                                handlerExceptionResolver.resolveException(request,response ,null , exception );
+
                             }
                     )
                             .successHandler(oAuth2SuccessHanlder)
-                            );
+                            )
+                    .exceptionHandling(exceptionConifg -> exceptionConifg.accessDeniedHandler((request, response, accessDeniedException) -> {
+
+                        handlerExceptionResolver.resolveException(request,response ,null , accessDeniedException );
+                    }));
 //                .formLogin(Customizer.withDefaults());
             return httpSecurity.build();
 
