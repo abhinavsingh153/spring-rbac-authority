@@ -1,14 +1,13 @@
 package com.codingshuttle.youtube.hospitalManagement.security;
 
-import com.codingshuttle.youtube.hospitalManagement.dto.LoginRequestDto;
-import com.codingshuttle.youtube.hospitalManagement.dto.LoginResponseDto;
-import com.codingshuttle.youtube.hospitalManagement.dto.SignupRequestDto;
-import com.codingshuttle.youtube.hospitalManagement.dto.SignupResponseDto;
+import com.codingshuttle.youtube.hospitalManagement.dto.*;
 import com.codingshuttle.youtube.hospitalManagement.entity.Patient;
+import com.codingshuttle.youtube.hospitalManagement.entity.RefreshToken;
 import com.codingshuttle.youtube.hospitalManagement.entity.User;
 import com.codingshuttle.youtube.hospitalManagement.entity.type.AuthProviderType;
 import com.codingshuttle.youtube.hospitalManagement.entity.type.RoleType;
 import com.codingshuttle.youtube.hospitalManagement.repository.PatientRepository;
+import com.codingshuttle.youtube.hospitalManagement.repository.RefreshTokenRepository;
 import com.codingshuttle.youtube.hospitalManagement.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +21,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +32,8 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PatientRepository patientRepository;
+    private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     public LoginResponseDto login(LoginRequestDto request) {
 
@@ -42,7 +44,9 @@ public class AuthService {
 
         //generate JWT token
         String token = authUtil.generateJwtAccessToken(user);
-        return new LoginResponseDto(token , user.getId());
+
+        String refreshToken = refreshTokenService.generateRefreshToken(user.getId());
+        return new LoginResponseDto(token , refreshToken,user.getId());
     }
 
     //Controller method
@@ -122,7 +126,8 @@ public class AuthService {
             throw new BadCredentialsException("This email is already registered with provider "+ email);
         }
 
-        LoginResponseDto loginResponseDto =  new LoginResponseDto(authUtil.generateJwtAccessToken(user) , user.getId());
+        String refreshToken = UUID.randomUUID().toString();
+        LoginResponseDto loginResponseDto =  new LoginResponseDto(authUtil.generateJwtAccessToken(user), refreshToken , user.getId());
 
         //save the userInfo and provder id with user
 
@@ -131,5 +136,14 @@ public class AuthService {
         //otherwise: first signup and the login
 
         return ResponseEntity.ok(loginResponseDto);
+    }
+
+    public void logout(RefreshTokenRequestDto request) {
+
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(request.getRefreshToken())
+                .orElseThrow(() ->new RuntimeException("Invalid Refresh Token"));
+
+//      refreshToken.setActive(false);
+        refreshTokenRepository.delete(refreshToken);
     }
 }

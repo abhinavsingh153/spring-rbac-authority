@@ -43,7 +43,7 @@ public class AuthUtil {
         Claims claims =  Jwts.parser()
                 .verifyWith(getSecretKey())
                 .build()
-                .parseSignedClaims(token)
+                .parseSignedClaims(token) //throws Jwt exception
                 .getPayload();
 
         return claims.getSubject();

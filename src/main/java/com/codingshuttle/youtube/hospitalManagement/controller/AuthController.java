@@ -1,10 +1,8 @@
 package com.codingshuttle.youtube.hospitalManagement.controller;
 
-import com.codingshuttle.youtube.hospitalManagement.dto.LoginRequestDto;
-import com.codingshuttle.youtube.hospitalManagement.dto.LoginResponseDto;
-import com.codingshuttle.youtube.hospitalManagement.dto.SignupRequestDto;
-import com.codingshuttle.youtube.hospitalManagement.dto.SignupResponseDto;
+import com.codingshuttle.youtube.hospitalManagement.dto.*;
 import com.codingshuttle.youtube.hospitalManagement.security.AuthService;
+import com.codingshuttle.youtube.hospitalManagement.security.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto request){
@@ -29,6 +28,20 @@ public class AuthController {
     public ResponseEntity<SignupResponseDto> signup(@RequestBody SignupRequestDto request){
 
         return ResponseEntity.ok(authService.signup(request));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponseDto> refreshToken(@RequestBody RefreshTokenRequestDto request){
+
+        return ResponseEntity.ok(refreshTokenService.refreshToken(request));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@RequestBody RefreshTokenRequestDto request){
+
+        authService.logout(request);
+
+        return ResponseEntity.ok("Logged out successfully");
     }
 
 
