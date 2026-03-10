@@ -22,6 +22,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +33,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PatientRepository patientRepository;
+    private final RefreshTokenService refreshTokenService;
 
     public LoginResponseDto login(LoginRequestDto request) {
 
@@ -42,7 +44,9 @@ public class AuthService {
 
         //generate JWT token
         String token = authUtil.generateJwtAccessToken(user);
-        return new LoginResponseDto(token , user.getId());
+
+        String refreshToken = refreshTokenService.generateRefreshToken(user.getId());
+        return new LoginResponseDto(token , refreshToken,user.getId());
     }
 
     //Controller method
@@ -122,7 +126,8 @@ public class AuthService {
             throw new BadCredentialsException("This email is already registered with provider "+ email);
         }
 
-        LoginResponseDto loginResponseDto =  new LoginResponseDto(authUtil.generateJwtAccessToken(user) , user.getId());
+        String refreshToken = UUID.randomUUID().toString();
+        LoginResponseDto loginResponseDto =  new LoginResponseDto(authUtil.generateJwtAccessToken(user), refreshToken , user.getId());
 
         //save the userInfo and provder id with user
 

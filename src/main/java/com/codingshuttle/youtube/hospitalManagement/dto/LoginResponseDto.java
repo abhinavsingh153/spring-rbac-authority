@@ -6,6 +6,7 @@ import lombok.*;
 @AllArgsConstructor
 public class LoginResponseDto {
     private String jwtToken;
+    private String refreshToken;
     private Long userId;
 
 //    public LoginResponseDto(String jwtToken, Long userId) {
